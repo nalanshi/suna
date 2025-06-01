@@ -11,6 +11,7 @@ import {
   Minimize2,
   Info,
 } from 'lucide-react';
+import Image from 'next/image'; // Import Image
 
 interface ImageRendererProps {
   url: string;
@@ -47,17 +48,15 @@ export function ImageRenderer({ url, className }: ImageRendererProps) {
   }, [zoom, isFitToScreen]);
 
   // Handle image load success
-  const handleImageLoad = () => {
+  const handleImageLoad = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setImgLoaded(true);
     setImgError(false);
-
-    if (imageRef.current) {
-      setImgInfo({
-        width: imageRef.current.naturalWidth,
-        height: imageRef.current.naturalHeight,
-        type: isSvg ? 'SVG' : url.split('.').pop()?.toUpperCase() || 'Image',
-      });
-    }
+    const target = event.target as HTMLImageElement;
+    setImgInfo({
+      width: target.naturalWidth,
+      height: target.naturalHeight,
+      type: isSvg ? 'SVG' : url.split('.').pop()?.toUpperCase() || 'Image',
+    });
   };
 
   // Handle image load error
@@ -256,34 +255,36 @@ export function ImageRenderer({ url, className }: ImageRendererProps) {
                   height: '100%',
                 }}
               >
-                {/* Fallback to img if object fails */}
-                <img
-                  ref={imageRef}
+                {/* Fallback to Image if object fails */}
+                <Image
                   src={url}
                   alt="SVG preview"
-                  className="max-w-full max-h-full object-contain"
+                  fill
                   style={{
+                    objectFit: 'contain',
                     transform: imageTransform,
                     transition: 'transform 0.2s ease',
                   }}
                   draggable={false}
                   onLoad={handleImageLoad}
                   onError={handleImageError}
+                  unoptimized={url.startsWith('blob:') || url.startsWith('data:') || isSvg}
                 />
               </object>
             ) : (
-              <img
-                ref={imageRef}
-                src={url}
+              <Image
+                src={url} // Note: ref={imageRef} was removed from here in a previous step that was successful
                 alt="Image preview"
-                className="max-w-full max-h-full object-contain"
+                fill
                 style={{
+                  objectFit: 'contain', // equivalent to object-contain
                   transform: imageTransform,
                   transition: 'transform 0.2s ease',
                 }}
                 draggable={false}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
+                unoptimized={url.startsWith('blob:') || url.startsWith('data:')} // Avoid optimization for blob/data URLs
               />
             )}
           </div>

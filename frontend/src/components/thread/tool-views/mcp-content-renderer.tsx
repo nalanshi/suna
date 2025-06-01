@@ -10,6 +10,7 @@ import {
   Search, Database, FileText, Link2, Key, AlertTriangle, 
   Copy, Globe, FileCode, Table, BookOpen, ExternalLink 
 } from 'lucide-react';
+import Image from 'next/image'; // Import Image
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
@@ -95,14 +96,17 @@ function SearchResultsRenderer({ data, metadata }: { data: any; metadata?: any }
                     </h4>
                   </div>
                   {result.image && (
-                    <img 
-                      src={result.image} 
-                      alt=""
-                      className="w-16 h-12 object-cover rounded border border-zinc-200 dark:border-zinc-700"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
+                    <div className="w-16 h-12 relative rounded border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                      <Image
+                        src={result.image}
+                        alt={result.title || "Search result image"}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
                 
@@ -118,10 +122,11 @@ function SearchResultsRenderer({ data, metadata }: { data: any; metadata?: any }
                 {result.url && (
                   <div className="flex items-center gap-1.5 text-xs">
                     {result.favicon && (
-                      <img 
+                      <Image
                         src={result.favicon} 
                         alt=""
-                        className="w-4 h-4"
+                        width={16}
+                        height={16}
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}

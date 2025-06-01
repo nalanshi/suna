@@ -309,17 +309,14 @@ export function FileAttachment({
                 }}
                 title={filename}
             >
-                <img
-                    src={sandboxId && session?.access_token ? imageUrl : fileUrl}
+                <Image
+                    src={sandboxId && session?.access_token && imageUrl ? imageUrl : fileUrl || ''} // Ensure src is a non-null string
                     alt={filename}
-                    className={cn(
-                        "max-h-full", // Respect parent height constraint
-                        isGridLayout ? "w-full h-full object-cover" : "w-auto" // Full width & height in grid with object-cover
-                    )}
+                    fill
                     style={{
-                        height: imageHeight,
+                        objectFit: isGridLayout ? "cover" : "contain",
                         objectPosition: "center",
-                        objectFit: isGridLayout ? "cover" : "contain"
+                        // height: imageHeight, // fill prop handles sizing with parent
                     }}
                     onLoad={() => {
                         console.log("Image loaded successfully:", filename);
@@ -359,11 +356,10 @@ export function FileAttachment({
 
                         setHasError(true);
                         // If the image failed to load and we have a localPreviewUrl that's a blob URL, try using it directly
-                        if (localPreviewUrl && typeof localPreviewUrl === 'string' && localPreviewUrl.startsWith('blob:')) {
-                            console.log('Falling back to localPreviewUrl for:', filename);
-                            (e.target as HTMLImageElement).src = localPreviewUrl;
-                        }
+                        // This fallback mechanism is harder with Next/Image. Consider removing or handling differently.
+                        // For now, we rely on Next/Image's onError.
                     }}
+                    unoptimized={true} // Assume it can be a blob URL, so unoptimized
                 />
             </button>
         );

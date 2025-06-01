@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image'; // Import Image
 import { Image as ImageIcon, ImageOff, CheckCircle, AlertTriangle, Loader2, Download, ZoomIn, ZoomOut, ExternalLink, Check } from 'lucide-react';
 import { ToolViewProps } from '../types';
 import {
@@ -61,7 +62,7 @@ function SafeImage({ src, alt, filePath, className }: { src: string; alt: string
         URL.revokeObjectURL(imgSrc);
       }
     };
-  }, [src, session?.access_token]);
+  }, [src, session?.access_token, imgSrc]);
 
   const handleError = () => {
     if (attempts < 3) {
@@ -149,22 +150,25 @@ function SafeImage({ src, alt, filePath, className }: { src: string; alt: string
         "overflow-hidden transition-all duration-300 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 mb-3",
         isZoomed ? "cursor-zoom-out" : "cursor-zoom-in"
       )}>
-        <div className="relative flex items-center justify-center">
-          <img
+        <div className="relative flex items-center justify-center w-full h-full"> {/* Ensure parent has dimensions for fill */}
+          <Image
             src={imgSrc}
             alt={alt}
             onClick={handleZoomToggle}
-            className={cn(
-              "max-w-full object-contain transition-all duration-300 ease-in-out",
-              isZoomed 
-                ? "max-h-[80vh]" 
-                : "max-h-[500px] hover:scale-[1.01]",
+            fill
+            style={{
+              objectFit: 'contain',
+              transform: isZoomed ? `scale(${zoomLevel})` : 'none',
+              transition: 'transform 0.3s ease-in-out', // Added transition here
+            }}
+            className={cn( // Classes that don't conflict with fill (like max-h) can remain if needed for other purposes
+              isZoomed
+                ? "" // max-h is controlled by fill and parent
+                : "hover:scale-[1.01]", // This might need to be on a wrapper if it interferes
               className
             )}
-            style={{
-              transform: isZoomed ? `scale(${zoomLevel})` : 'none',
-            }}
             onError={handleError}
+            unoptimized={true} // Since imgSrc can be a blob URL
           />
         </div>
       </div>

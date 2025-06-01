@@ -351,7 +351,7 @@ export function useCachedFile<T = string>(
         }
       }
     };
-  }, [sandboxId, filePath, options.contentType]);
+  }, [sandboxId, filePath, options.contentType, cacheKey, getFileContent]);
 
   // Expose the cache manipulation functions
   return {

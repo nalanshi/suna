@@ -4,6 +4,7 @@ import { Play, Pause, ArrowDown, FileText, Info } from 'lucide-react';
 import { UnifiedMessage } from '@/components/thread/types';
 import { safeJsonParse } from '@/components/thread/utils';
 import Link from 'next/link';
+import Image from 'next/image'; // Import Image
 
 // Define the set of tags whose raw XML should be hidden during streaming
 const HIDE_STREAMING_XML_TAGS = new Set([
@@ -109,7 +110,7 @@ export const PlaybackControls = ({
     if (!isPlaying && !isSidePanelOpen) {
       onToggleSidePanel();
     }
-  }, [isPlaying, isSidePanelOpen, onToggleSidePanel]);
+  }, [isPlaying, isSidePanelOpen, onToggleSidePanel, updatePlaybackState]);
 
   const resetPlayback = useCallback(() => {
     updatePlaybackState({
@@ -339,10 +340,112 @@ export const PlaybackControls = ({
   useEffect(() => {
     if (!isPlaying || messages.length === 0) return;
 
-    let playbackTimeout: NodeJS.Timeout;
-    let cleanupStreaming: (() => void) | undefined;
+    const playbackTimeout: NodeJS.Timeout = setTimeout(async () => { // Initialize directly
+      // Ensure we're within bounds
+      if (currentMessageIndex >= messages.length) {
+        updatePlaybackState({ isPlaying: false });
+        return;
+      }
 
-    const playbackNextMessage = async () => {
+      const currentMessage = messages[currentMessageIndex];
+      console.log(
+        `Playing message ${currentMessageIndex}:`,
+        currentMessage.type,
+        currentMessage.message_id,
+      );
+
+      // If it's an assistant message, stream it
+      if (currentMessage.type === 'assistant') {
+        try {
+          // Parse the content if it's JSON
+          let content = currentMessage.content;
+          try {
+            const parsed = JSON.parse(content);
+            if (parsed.content) {
+              content = parsed.content;
+            }
+          } catch (e) {
+            // Not JSON, use as is
+          }
+
+          // Stream the message content
+          await new Promise<void>((resolve) => {
+            cleanupStreaming = streamText(content, resolve);
+          });
+        } catch (error) {
+          console.error('Error streaming message:', error);
+        }
+      } else {
+        // For non-assistant messages, just add them to visible messages
+        updatePlaybackState({
+          visibleMessages: [...visibleMessages, currentMessage],
+        });
+
+        // Wait a moment before showing the next message
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      // Move to the next message
+      updatePlaybackState({
+        currentMessageIndex: currentMessageIndex + 1,
+      });
+    }, 500);
+    let cleanupStreaming: (() => void) | undefined; // Keep cleanupStreaming here
+
+    // This block is removed as playbackNextMessage is now inline in setTimeout
+    // const playbackNextMessage = async () => {
+    //   // Ensure we're within bounds
+    //   if (currentMessageIndex >= messages.length) {
+    //     updatePlaybackState({ isPlaying: false });
+    //     return;
+    //   }
+
+    //   const currentMessage = messages[currentMessageIndex];
+    //   console.log(
+    //     `Playing message ${currentMessageIndex}:`,
+    //     currentMessage.type,
+    //     currentMessage.message_id,
+    //   );
+
+    //   // If it's an assistant message, stream it
+    //   if (currentMessage.type === 'assistant') {
+    //     try {
+    //       // Parse the content if it's JSON
+    //       let content = currentMessage.content;
+    //       try {
+    //         const parsed = JSON.parse(content);
+    //         if (parsed.content) {
+    //           content = parsed.content;
+    //         }
+    //       } catch (e) {
+    //         // Not JSON, use as is
+    //       }
+
+    //       // Stream the message content
+    //       await new Promise<void>((resolve) => {
+    //         cleanupStreaming = streamText(content, resolve);
+    //       });
+    //     } catch (error) {
+    //       console.error('Error streaming message:', error);
+    //     }
+    //   } else {
+    //     // For non-assistant messages, just add them to visible messages
+    //     updatePlaybackState({
+    //       visibleMessages: [...visibleMessages, currentMessage],
+    //     });
+
+    //     // Wait a moment before showing the next message
+    //     await new Promise((resolve) => setTimeout(resolve, 500));
+    //   }
+
+    //   // Move to the next message
+    //   updatePlaybackState({
+    //     currentMessageIndex: currentMessageIndex + 1,
+    //   });
+    // };
+
+    // // Start playback with a small delay
+    // playbackTimeout = setTimeout(playbackNextMessage, 500);
       // Ensure we're within bounds
       if (currentMessageIndex >= messages.length) {
         updatePlaybackState({ isPlaying: false });
@@ -393,9 +496,6 @@ export const PlaybackControls = ({
       });
     };
 
-    // Start playback with a small delay
-    playbackTimeout = setTimeout(playbackNextMessage, 500);
-
     return () => {
       clearTimeout(playbackTimeout);
       if (cleanupStreaming) cleanupStreaming();
@@ -406,7 +506,7 @@ export const PlaybackControls = ({
     messages,
     streamText,
     updatePlaybackState,
-    visibleMessages,
+    visibleMessages, // Added visibleMessages as it's used in the effect
   ]);
 
   // Floating playback controls position based on side panel state
@@ -423,7 +523,7 @@ export const PlaybackControls = ({
             <div className="flex items-center gap-2">
               <div className="flex items-center justify-center w-6 h-6 rounded-md overflow-hidden bg-primary/10">
                 <Link href="/">
-                  <img
+                  <Image
                     src="/kortix-symbol.svg"
                     alt="Kortix"
                     width={16}

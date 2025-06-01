@@ -84,8 +84,8 @@ export default function AgentsPage() {
   const createAgentMutation = useCreateAgent();
   const { optimisticallyUpdateAgent, revertOptimisticUpdate } = useOptimisticAgentUpdate();
 
-  const agents = agentsResponse?.agents || [];
-  const pagination = agentsResponse?.pagination;
+  const agents = useMemo(() => agentsResponse?.agents || [], [agentsResponse]);
+  const pagination = useMemo(() => agentsResponse?.pagination, [agentsResponse]);
 
   // Get all tools for filter options (we'll need to fetch this separately or compute from current page)
   const allTools = useMemo(() => {

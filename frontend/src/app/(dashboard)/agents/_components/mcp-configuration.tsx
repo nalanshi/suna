@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image'; // Import Image
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -387,7 +388,7 @@ export const MCPConfiguration: React.FC<MCPConfigurationProps> = ({
                               >
                                 <div className="flex items-start gap-3">
                                   {server.iconUrl ? (
-                                    <img src={server.iconUrl} alt={server.displayName} className="w-6 h-6 rounded" />
+                                    <Image src={server.iconUrl} alt={server.displayName || server.name} width={24} height={24} className="rounded" />
                                   ) : (
                                     <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
                                       <Sparkles className="h-3 w-3 text-primary" />
@@ -457,7 +458,7 @@ export const MCPConfiguration: React.FC<MCPConfigurationProps> = ({
                                   >
                                     <div className="flex items-start gap-3">
                                       {server.iconUrl ? (
-                                        <img src={server.iconUrl} alt={server.name} className="w-6 h-6 rounded" />
+                                        <Image src={server.iconUrl} alt={server.name} width={24} height={24} className="rounded" />
                                       ) : (
                                         <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
                                           <Sparkles className="h-3 w-3 text-primary" />
@@ -518,7 +519,7 @@ export const MCPConfiguration: React.FC<MCPConfigurationProps> = ({
                                     >
                                       <div className="flex items-start gap-3">
                                         {server.iconUrl ? (
-                                          <img src={server.iconUrl} alt={server.name} className="w-6 h-6 rounded" />
+                                          <Image src={server.iconUrl} alt={server.name} width={24} height={24} className="rounded" />
                                         ) : (
                                           <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
                                             <Sparkles className="h-3 w-3 text-primary" />

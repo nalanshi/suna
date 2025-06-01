@@ -33,8 +33,8 @@ export default function MarketplacePage() {
   const { data: agentsResponse, isLoading, error } = useMarketplaceAgents(queryParams);
   const addToLibraryMutation = useAddAgentToLibrary();
 
-  const agents = agentsResponse?.agents || [];
-  const pagination = agentsResponse?.pagination;
+  const agents = React.useMemo(() => agentsResponse?.agents || [], [agentsResponse]);
+  const pagination = React.useMemo(() => agentsResponse?.pagination, [agentsResponse]);
 
   React.useEffect(() => {
     setPage(1);

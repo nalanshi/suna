@@ -17,6 +17,7 @@ import {
   ArrowUpRight,
   Zap
 } from 'lucide-react';
+import Image from 'next/image'; // Import Image
 import { ToolViewProps } from '../types';
 import {
   formatTimestamp,
@@ -193,10 +194,12 @@ export function WebScrapeToolView({
                 <div className="group relative">
                   <div className="flex items-center gap-3 p-4 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors rounded-xl border border-zinc-200 dark:border-zinc-800">
                     {favicon && (
-                      <img 
+                      <Image
                         src={favicon} 
                         alt="" 
-                        className="w-6 h-6 rounded-md flex-shrink-0"
+                        width={24}
+                        height={24}
+                        className="rounded-md flex-shrink-0"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }} 

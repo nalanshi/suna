@@ -20,6 +20,7 @@ export interface ModelOption {
   top?: boolean;
   isCustom?: boolean;
   priority?: number;
+  uniqueKey?: string;
 }
 
 export interface CustomModel {

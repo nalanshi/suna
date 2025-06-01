@@ -8,6 +8,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { CodeRenderer } from './code-renderer';
+import Image from 'next/image'; // Import Image
 
 // Process Unicode escape sequences in content
 export const processUnicodeContent = (content: string): string => {
@@ -102,13 +103,42 @@ export const MarkdownRenderer = forwardRef<
                 {...props}
               />
             ),
-            img: ({ node, ...props }) => (
-              <img
-                className="max-w-full h-auto rounded-md my-2"
-                {...props}
-                alt={props.alt || ''}
-              />
-            ),
+            img: (props: any) => {
+              // Attempt to get width and height from URL parameters if they exist (e.g., #WxH)
+              const srcParts = props.src.split('#');
+              const url = srcParts[0];
+              const hash = srcParts[1];
+              let width = 500; // Default width
+              let height = 300; // Default height
+              let hasDimensions = false;
+
+              if (hash) {
+                const dimensions = hash.split('x').map(Number);
+                if (dimensions.length === 2 && !isNaN(dimensions[0]) && !isNaN(dimensions[1]) && dimensions[0] > 0 && dimensions[1] > 0) {
+                  width = dimensions[0];
+                  height = dimensions[1];
+                  hasDimensions = true;
+                }
+              }
+
+              if (url.startsWith('data:') || url.startsWith('blob:')) {
+                // eslint-disable-next-line @next/next/no-img-element
+                return <img {...props} src={url} alt={props.alt || 'markdown image'} className="max-w-full h-auto rounded-md my-2" />;
+              }
+
+              return (
+                <Image
+                  src={url}
+                  alt={props.alt || 'markdown image'}
+                  width={width}
+                  height={height}
+                  style={{ maxWidth: '100%', height: 'auto' }} // Maintain responsiveness
+                  className="rounded-md my-2" // Apply styling via className
+                  // Consider adding unoptimized={true} if many images are external and hostnames are not configured,
+                  // or if the markdown source is highly unpredictable.
+                />
+              );
+            },
             pre: ({ node, ...props }) => (
               <pre className="p-0 my-2 bg-transparent" {...props} />
             ),

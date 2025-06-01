@@ -171,7 +171,7 @@ export default function ThreadPage({
           break;
       }
     },
-    [threadId],
+    [],
   );
 
   const handleStreamError = useCallback((errorMessage: string) => {
@@ -275,9 +275,39 @@ export default function ThreadPage({
   useEffect(() => {
     if (!isPlaying || messages.length === 0) return;
 
-    let playbackTimeout: NodeJS.Timeout;
+    const playbackTimeout: NodeJS.Timeout = setTimeout(() => { // Initialize directly
+      if (currentMessageIndex >= messages.length) {
+        setIsPlaying(false);
+        return;
+      }
 
-    const playbackNextMessage = async () => {
+      const currentMessage = messages[currentMessageIndex];
+      console.log(
+        `Playing message ${currentMessageIndex}:`,
+        currentMessage.type,
+        currentMessage.message_id,
+      );
+
+      setCurrentMessageIndex((prevIndex) => prevIndex + 1);
+    }, 500);
+
+    // This block is removed as playbackNextMessage is now inline in setTimeout
+    // const playbackNextMessage = async () => {
+    //   if (currentMessageIndex >= messages.length) {
+    //     setIsPlaying(false);
+    //     return;
+    //   }
+
+    //   const currentMessage = messages[currentMessageIndex];
+    //   console.log(
+    //     `Playing message ${currentMessageIndex}:`,
+    //     currentMessage.type,
+    //     currentMessage.message_id,
+    //   );
+
+    //   setCurrentMessageIndex((prevIndex) => prevIndex + 1);
+    // };
+    // playbackTimeout = setTimeout(playbackNextMessage, 500);
       if (currentMessageIndex >= messages.length) {
         setIsPlaying(false);
         return;
@@ -292,12 +322,10 @@ export default function ThreadPage({
 
       setCurrentMessageIndex((prevIndex) => prevIndex + 1);
     };
-    playbackTimeout = setTimeout(playbackNextMessage, 500);
-
     return () => {
       clearTimeout(playbackTimeout);
     };
-  }, [isPlaying, currentMessageIndex, messages]);
+  }, [isPlaying, currentMessageIndex, messages, setIsPlaying /* Added setIsPlaying as it's used */]);
 
   const {
     status: streamHookStatus,

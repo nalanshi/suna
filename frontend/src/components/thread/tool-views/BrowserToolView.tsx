@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   CircleDashed,
 } from 'lucide-react';
+import Image from 'next/image'; // Import Image
 import { ToolViewProps } from './types';
 import {
   extractBrowserUrl,
@@ -206,11 +207,12 @@ export function BrowserToolView({
           {imageLoading && (
             <ImageLoader />
           )}
-          <Card className={`p-0 overflow-hidden border ${imageLoading ? 'hidden' : 'block'}`}>
-            <img
+          <Card className={`p-0 overflow-hidden border relative ${imageLoading ? 'hidden' : 'block'}`} style={{ width: '100%', height: '100%' }}>
+            <Image
               src={screenshotUrl}
               alt="Browser Screenshot"
-              className="max-w-full max-h-full object-contain"
+              fill
+              style={{ objectFit: 'contain' }}
               onLoad={handleImageLoad}
               onError={handleImageError}
             />
@@ -231,13 +233,15 @@ export function BrowserToolView({
           {imageLoading && (
             <ImageLoader />
           )}
-          <Card className={`overflow-hidden border ${imageLoading ? 'hidden' : 'block'}`}>
-            <img
+          <Card className={`overflow-hidden border relative ${imageLoading ? 'hidden' : 'block'}`} style={{ width: '100%', height: '100%' }}>
+            <Image
               src={`data:image/jpeg;base64,${screenshotBase64}`}
               alt="Browser Screenshot"
-              className="max-w-full max-h-full object-contain"
+              fill
+              style={{ objectFit: 'contain' }}
               onLoad={handleImageLoad}
               onError={handleImageError}
+              unoptimized={true}
             />
           </Card>
           {imageError && !imageLoading && (
@@ -349,22 +353,25 @@ export function BrowserToolView({
               {imageLoading && (
                 <ImageLoader />
               )}
-              <Card className={`p-0 overflow-hidden border ${imageLoading ? 'hidden' : 'block'}`}>
+              <Card className={`p-0 overflow-hidden border relative ${imageLoading ? 'hidden' : 'block'}`} style={{ width: '100%', height: '100%' }}>
                 {screenshotUrl ? (
-                  <img
+                  <Image
                     src={screenshotUrl}
                     alt="Browser Screenshot"
-                    className="max-w-full max-h-full object-contain"
+                    fill
+                    style={{ objectFit: 'contain' }}
                     onLoad={handleImageLoad}
                     onError={handleImageError}
                   />
                 ) : (
-                  <img
+                  <Image
                     src={`data:image/jpeg;base64,${screenshotBase64}`}
                     alt="Browser Screenshot"
-                    className="max-w-full max-h-full object-contain"
+                    fill
+                    style={{ objectFit: 'contain' }}
                     onLoad={handleImageLoad}
                     onError={handleImageError}
+                    unoptimized={true}
                   />
                 )}
               </Card>
