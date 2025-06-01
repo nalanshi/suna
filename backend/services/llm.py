@@ -99,8 +99,10 @@ def prepare_params(
 
     if api_key:
         params["api_key"] = api_key
+        logger.info(f"Using explicit API key for model {model_name}")
     if api_base:
         params["api_base"] = api_base
+        logger.info(f"Using explicit API base {api_base} for model {model_name}")
     if model_id:
         params["model_id"] = model_id
 

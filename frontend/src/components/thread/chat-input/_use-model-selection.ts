@@ -23,8 +23,11 @@ export interface ModelOption {
 }
 
 export interface CustomModel {
-  id: string;
-  label: string;
+  id: string; // User-defined name for the model, also used as the value
+  label: string; // Display label
+  apiKey: string;
+  apiBase: string;
+  isGenericOpenAI?: boolean; // Optional: to signify it's an OpenAI-compatible endpoint
 }
 
 // SINGLE SOURCE OF TRUTH for all model data
@@ -205,7 +208,7 @@ export const getPrefixedModelId = (modelId: string, isCustom: boolean): string =
 
 // Helper to get custom models from localStorage
 export const getCustomModels = (): CustomModel[] => {
-  if (!isLocalMode() || typeof window === 'undefined') return [];
+  if (typeof window === 'undefined') return []; // Allow custom models in all environments
   
   try {
     const storedModels = localStorage.getItem(STORAGE_KEY_CUSTOM_MODELS);
@@ -214,14 +217,29 @@ export const getCustomModels = (): CustomModel[] => {
     const parsedModels = JSON.parse(storedModels);
     if (!Array.isArray(parsedModels)) return [];
     
-    return parsedModels
-      .filter((model: any) => 
-        model && typeof model === 'object' && 
-        typeof model.id === 'string' && 
-        typeof model.label === 'string');
+    // Filter for valid models containing all required fields
+    return parsedModels.filter(
+      (model: any): model is CustomModel =>
+        model &&
+        typeof model === 'object' &&
+        typeof model.id === 'string' &&
+        typeof model.label === 'string' &&
+        typeof model.apiKey === 'string' &&
+        typeof model.apiBase === 'string',
+    );
   } catch (e) {
     console.error('Error parsing custom models:', e);
     return [];
+  }
+};
+
+// Helper to save custom models to localStorage
+export const saveCustomModels = (models: CustomModel[]): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY_CUSTOM_MODELS, JSON.stringify(models));
+  } catch (e) {
+    console.error('Failed to save custom models to localStorage:', e);
   }
 };
 
@@ -237,6 +255,7 @@ const saveModelPreference = (modelId: string): void => {
 export const useModelSelection = () => {
   const [selectedModel, setSelectedModel] = useState(DEFAULT_FREE_MODEL_ID);
   const [customModels, setCustomModels] = useState<CustomModel[]>([]);
+  const [selectedCustomModelDetails, setSelectedCustomModelDetails] = useState<CustomModel | null>(null);
   
   const { data: subscriptionData } = useSubscription();
   const { data: modelsData, isLoading: isLoadingModels } = useAvailableModels({
@@ -249,7 +268,8 @@ export const useModelSelection = () => {
 
   // Function to refresh custom models from localStorage
   const refreshCustomModels = () => {
-    if (isLocalMode() && typeof window !== 'undefined') {
+    // Allow custom models in all environments
+    if (typeof window !== 'undefined') {
       const freshCustomModels = getCustomModels();
       setCustomModels(freshCustomModels);
     }
@@ -318,8 +338,8 @@ export const useModelSelection = () => {
       });
     }
     
-    // Add custom models if in local mode
-    if (isLocalMode() && customModels.length > 0) {
+    // Add custom models if they exist
+    if (customModels.length > 0) {
       const customModelOptions = customModels.map(model => ({
         id: model.id,
         label: model.label || formatModelName(model.id),
@@ -426,15 +446,17 @@ export const useModelSelection = () => {
     console.log('handleModelChange', modelId);
     
     // Refresh custom models from localStorage to ensure we have the latest
-    if (isLocalMode()) {
-      refreshCustomModels();
-    }
+    refreshCustomModels();
     
-    // First check if it's a custom model in local mode
-    const isCustomModel = isLocalMode() && customModels.some(model => model.id === modelId);
-    
-    // Then check if it's in standard MODEL_OPTIONS
     const modelOption = MODEL_OPTIONS.find(option => option.id === modelId);
+    const isCustomModel = customModels.some(model => model.id === modelId);
+
+    if (isCustomModel) {
+      const customModelDetail = customModels.find(cm => cm.id === modelId);
+      setSelectedCustomModelDetails(customModelDetail || null);
+    } else {
+      setSelectedCustomModelDetails(null);
+    }
     
     // Check if model exists in either custom models or standard options
     if (!modelOption && !isCustomModel) {
@@ -447,7 +469,7 @@ export const useModelSelection = () => {
       return;
     }
 
-    // Check access permissions (except for custom models in local mode)
+    // Check access permissions (except for custom models)
     if (!isCustomModel && !isLocalMode() && 
         !canAccessModel(subscriptionStatus, modelOption?.requiresSubscription ?? false)) {
       console.warn('Model not accessible:', modelId);
@@ -473,6 +495,7 @@ export const useModelSelection = () => {
     availableModels,
     allModels: MODEL_OPTIONS,  // Already pre-sorted
     customModels,
+    selectedCustomModelDetails, // New return value
     getActualModelId,
     refreshCustomModels,
     canAccessModel: (modelId: string) => {

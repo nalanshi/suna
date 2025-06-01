@@ -532,6 +532,8 @@ export const startAgent = async (
     reasoning_effort?: string;
     stream?: boolean;
     agent_id?: string;
+    custom_api_key?: string; // New field
+    custom_api_base?: string; // New field
   },
 ): Promise<{ agent_run_id: string }> => {
   try {
@@ -561,6 +563,8 @@ export const startAgent = async (
       reasoning_effort: 'low',
       stream: true,
       agent_id: undefined,
+      custom_api_key: undefined, // New
+      custom_api_base: undefined, // New
     };
 
     const finalOptions = { ...defaultOptions, ...options };
@@ -575,6 +579,13 @@ export const startAgent = async (
     // Only include agent_id if it's provided
     if (finalOptions.agent_id) {
       body.agent_id = finalOptions.agent_id;
+    }
+    // Add custom API key and base if provided
+    if (finalOptions.custom_api_key) {
+      body.api_key = finalOptions.custom_api_key; // Backend expects 'api_key'
+    }
+    if (finalOptions.custom_api_base) {
+      body.api_base = finalOptions.custom_api_base; // Backend expects 'api_base'
     }
 
     const response = await fetch(`${API_URL}/thread/${threadId}/agent/start`, {
