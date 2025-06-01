@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/button';
 export interface CustomModelFormData {
     id: string;
     label: string;
+    apiKey: string;
+    apiBase: string;
 }
 
 interface CustomModelDialogProps {
@@ -56,7 +58,7 @@ export const CustomModelDialog: React.FC<CustomModelDialogProps> = ({
         const { id, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [id === 'modelId' ? 'id' : 'label']: value
+        [id]: value // Assumes input IDs match formData keys: 'id', 'label', 'apiKey', 'apiBase'
         }));
     };
 
@@ -77,21 +79,58 @@ export const CustomModelDialog: React.FC<CustomModelDialogProps> = ({
                 <DialogHeader>
                     <DialogTitle>{mode === 'add' ? 'Add Custom Model' : 'Edit Custom Model'}</DialogTitle>
                     <DialogDescription>
-                        Kortix Suna uses <b>LiteLLM</b> under the hood, which makes it compatible with over 100 models. You can easily choose any <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">OpenRouter model</a> by prefixing it with <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">openrouter/</code> and it should work out of the box. If you want to use other models besides OpenRouter, you might have to modify the <a href="https://github.com/kortix-ai/suna/blob/main/backend/services/llm.py" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">llm.py</a>, set the correct environment variables, and rebuild your self-hosted Docker container.
+                        Kortix Suna uses <b>LiteLLM</b> under the hood, which makes it compatible with over 100 models. You can easily choose any <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">OpenRouter model</a> by prefixing it with <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">openrouter/</code> and it should work out of the box. If you want to use other models besides OpenRouter, you may need to provide an API Key and API Base URL. For advanced self-hosting, you might have to modify the <a href="https://github.com/kortix-ai/suna/blob/main/backend/services/llm.py" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">llm.py</a>, set the correct environment variables, and rebuild your self-hosted Docker container.
                     </DialogDescription>
-
-
-
                 </DialogHeader>
                 <div className="flex flex-col gap-4 py-4">
                     <div className="flex flex-col items-start gap-4">
-                        <Label htmlFor="modelId" className="text-right">
-                            Model ID
+                        <Label htmlFor="id" className="text-right">
+                            Model ID (must be unique)
                         </Label>
                         <Input
-                            id="modelId"
-                            placeholder="e.g. openrouter/meta-llama/llama-4-maverick"
+                            id="id"
+                            placeholder="e.g. openrouter/meta-llama/llama-3-8b-instruct"
                             value={formData.id}
+                            onChange={handleChange}
+                            className="col-span-3"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                    <div className="flex flex-col items-start gap-4">
+                        <Label htmlFor="label" className="text-right">
+                            Display Label
+                        </Label>
+                        <Input
+                            id="label"
+                            placeholder="e.g. My Custom Model (Llama 3 8B)"
+                            value={formData.label}
+                            onChange={handleChange}
+                            className="col-span-3"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                    <div className="flex flex-col items-start gap-4">
+                        <Label htmlFor="apiKey" className="text-right">
+                            API Key (Optional)
+                        </Label>
+                        <Input
+                            id="apiKey"
+                            type="password"
+                            placeholder="Enter API Key if required"
+                            value={formData.apiKey}
+                            onChange={handleChange}
+                            className="col-span-3"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                    <div className="flex flex-col items-start gap-4">
+                        <Label htmlFor="apiBase" className="text-right">
+                            API Base URL (Optional)
+                        </Label>
+                        <Input
+                            id="apiBase"
+                            placeholder="e.g. http://localhost:1234/v1"
+                            value={formData.apiBase}
                             onChange={handleChange}
                             className="col-span-3"
                             onClick={(e) => e.stopPropagation()}

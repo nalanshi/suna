@@ -26,7 +26,12 @@ export interface ChatInputHandles {
 export interface ChatInputProps {
   onSubmit: (
     message: string,
-    options?: { model_name?: string; enable_thinking?: boolean },
+    options?: {
+      model_name?: string;
+      enable_thinking?: boolean;
+      custom_api_key?: string; // New
+      custom_api_base?: string; // New
+    },
   ) => void;
   placeholder?: string;
   loading?: boolean;
@@ -96,6 +101,7 @@ export const ChatInput = forwardRef<ChatInputHandles, ChatInputProps>(
       canAccessModel,
       getActualModelId,
       refreshCustomModels,
+      selectedCustomModelDetails, // Destructure the new property
     } = useModelSelection();
 
     const deleteFileMutation = useFileDelete();
@@ -145,10 +151,22 @@ export const ChatInput = forwardRef<ChatInputHandles, ChatInputProps>(
         thinkingEnabled = true;
       }
 
-      onSubmit(message, {
+      const submitOptions: {
+        model_name: string;
+        enable_thinking: boolean;
+        custom_api_key?: string;
+        custom_api_base?: string;
+      } = {
         model_name: baseModelName,
         enable_thinking: thinkingEnabled,
-      });
+      };
+
+      if (selectedCustomModelDetails && selectedModel === selectedCustomModelDetails.id) {
+        submitOptions.custom_api_key = selectedCustomModelDetails.apiKey;
+        submitOptions.custom_api_base = selectedCustomModelDetails.apiBase;
+      }
+
+      onSubmit(message, submitOptions);
 
       if (!isControlled) {
         setUncontrolledValue('');
